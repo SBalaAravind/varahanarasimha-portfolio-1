@@ -9,6 +9,10 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
 
+    defaults:
+      run:
+        working-directory: my-app   # 🔥 IMPORTANT
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -30,18 +34,18 @@ jobs:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_KEY }}
-          source: "."
-          target: ${{ secrets.APP_PATH }}
+          source: "my-app/*"
+          target: "/home/ubuntu/nextjs-app"
 
-      - name: Run app on EC2
+      - name: Restart app on EC2
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_KEY }}
           script: |
-            cd ${{ secrets.APP_PATH }}
+            cd /home/ubuntu/nextjs-app
             npm install
-            pm2 stop nextjs || true
-            pm2 start npm --name "nextjs" -- start
+            pm2 stop nextjs-app || true
+            pm2 start npm --name "nextjs-app" -- start
             pm2 save
